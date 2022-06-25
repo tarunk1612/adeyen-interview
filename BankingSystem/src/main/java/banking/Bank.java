@@ -1,6 +1,7 @@
 package banking;
 
 import java.util.LinkedHashMap;
+import java.util.UUID;
 
 /**
  * Private Variables:<br>
@@ -14,36 +15,54 @@ public class Bank implements BankInterface {
     }
 
     private Account getAccount(Long accountNumber) {
-        // complete the function
-        return null;
+        return accounts.get(accountNumber);
     }
 
     public Long openCommercialAccount(Company company, int pin, double startingDeposit) {
-        // complete the function
-        return -1L;
+        Long newAccountNuber = 1L;
+        if (accounts == null) {
+            accounts = new LinkedHashMap<>();
+        } else {
+            newAccountNuber = accounts.size() + 1L;
+        }
+        Account account = new CommercialAccount(company, newAccountNuber, pin, startingDeposit);
+        accounts.put(newAccountNuber, account);
+        return newAccountNuber;
     }
 
-    public Long openConsumerAccount(Person person, int pin, double startingDeposit) {
-        // complete the function
-        return -1L;
+    public synchronized Long openConsumerAccount(Person person, int pin, double startingDeposit) {
+        Long newAccountNuber = 1L;
+        if (accounts == null) {
+            accounts = new LinkedHashMap<>();
+        } else {
+            newAccountNuber = accounts.size() + 1L;
+        }
+        Account account = new ConsumerAccount(person, newAccountNuber, pin, startingDeposit);
+        accounts.put(newAccountNuber, account);
+        return newAccountNuber;
     }
 
-    public boolean authenticateUser(Long accountNumber, int pin) {
-        // complete the function
-        return true;
+    public synchronized boolean authenticateUser(Long accountNumber, int pin) {
+        return accounts.get(accountNumber).validatePin(pin);
     }
 
-    public double getBalance(Long accountNumber) {
-        // complete the function
-        return -1;
+    public synchronized double getBalance(Long accountNumber) {
+        return accounts.get(accountNumber).getBalance();
     }
 
-    public void credit(Long accountNumber, double amount) {
-        // complete the function
+    public synchronized void credit(Long accountNumber, double amount) {
+        Account account = accounts.get(accountNumber);
+        account.creditAccount(amount);
+        accounts.put(account.getAccountNumber(), account);
     }
 
-    public boolean debit(Long accountNumber, double amount) {
-        // complete the function
-        return true;
+    public synchronized boolean debit(Long accountNumber, double amount) {
+        Account account = accounts.get(accountNumber);
+        if (account.debitAccount(amount)) {
+            accounts.put(account.getAccountNumber(), account);
+            return true;
+        } else {
+            return false;
+        }
     }
 }
